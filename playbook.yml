@@ -1,0 +1,31 @@
+---
+- name:  Je fais des tests
+  hosts: all
+
+  vars:
+    csv_file: user.csv
+
+  tasks:
+
+    - name: Lire le fichier CSV
+      read_csv:
+        path: "{{ csv_file }}"
+        delimiter: ","
+      register: users
+      delegate_to: localhost
+
+    - name: Créer des utilisateurs en boucle
+      user:
+        name: "{{ item.username }}"
+        uid: "{{ item.uid }}"
+        home: "{{ item.home }}"
+        password: "{{ item.password }}"
+        state: present
+      with_list: "{{ users.list }}"
+
+    - name: Ajout clef
+      authorized_key:
+        user: "{{ item.username }}"
+        state: present
+        key: "{{ lookup('file', 'a/' + item.username + '.b') }}"
+      with_list: "{{ users.list }}"
